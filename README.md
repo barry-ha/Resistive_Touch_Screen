@@ -49,34 +49,34 @@ The touchscreen hardware will report raw measurement values as integers 0..1023 
 
 ## Screen x,y Coordinate System in Landscape
 
-                    x=0 px                        x=320 px
-              (0,0)   +-----------------------------+ y=0 px
-              Origin  |   x-->                      |
-                      | y                           |
-                      | |                           |
-                      | v                           |
-                      |                             |
-                      |                             |
-                      |                             |
-                      +-----------------------------+ y=240 px
+            x=0 px                        x=320 px
+      (0,0)   +-----------------------------+ y=0 px
+      Origin  |   x-->                      |
+              | y                           |
+              | |                           |
+              | v                           |
+              |                             |
+              |                             |
+              |                             |
+              +-----------------------------+ y=240 px
 
 ## TouchScreen X,Y Coordinate System in Landscape
 
-                    Y~100 ohms                  Y~900 ohms
-                      +-----------------------------+ X~900 ohms
-                      |                             |
-                      |                             |
-                      |                             |
-                      | ^                           |
-                      | |                           |
-                      | X                           |
-            Origin    |   Y-->                      |
-            (100,100) +-----------------------------+ X~100 ohms
+            Y~100 ohms                  Y~900 ohms
+              +-----------------------------+ X~900 ohms
+              |                             |
+              |                             |
+              |                             |
+              | ^                           |
+              | |                           |
+              | X                           |
+    Origin    |   Y-->                      |
+    (100,100) +-----------------------------+ X~100 ohms
 
 ## Class Names for Coordinates
 Although the Adafruit library provides a convenient **class TSPoint** to hold x,y,z values, it can tempt the programmer to use it for everything. It can be the source of program errors if it sometimes holds resistance measurements and sometimes screen coordinates. 
 
-To help make programs self-documenting, this class provides:
+To help make programs self-documenting, we provide:
 
 * **class ScreenPoint** for screen locations
 * **class TouchPoint** for resistance measurements
@@ -84,7 +84,7 @@ To help make programs self-documenting, this class provides:
 # Tested with:
 1. Arduino Feather M4 Express (120 MHz SAMD51)
    * https://www.adafruit.com/product/3857
-1. Adafruit 3.2" TFT color LCD display ILI-9341, with 4-wire resistive touchscreen
+2. Adafruit 3.2" TFT color LCD display ILI-9341, with 4-wire resistive touchscreen
    * https://www.adafruit.com/product/1743
    * How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
    * SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test

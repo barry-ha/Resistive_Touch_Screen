@@ -15,6 +15,14 @@
 #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
+// ---------- Touch Screen configuration
+#define XP_XM_OHMS 310   // Resistance in ohms between X+ and X- to calibrate touch pressure
+                         // measure this with an ohmmeter while device is turned off
+#define X_MIN_OHMS 100   // Default: Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS 900
+#define Y_MIN_OHMS 100   // Default: Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS 900
+
 // ---------- Constructor
 Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
@@ -45,7 +53,6 @@ void setup() {
   // ----- init touchscreen
   tsn.setScreenSize(tft.width(), tft.height());                                         // required
   tsn.setResistanceRange(X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS, XP_XM_OHMS);   // optional, for overriding defaults
-  tsn.setThreshhold(START_TOUCH_PRESSURE, END_TOUCH_PRESSURE);                          // optional, for overriding defaults
   tsn.unit_test();                                                                      // optional, for debug
 }
 

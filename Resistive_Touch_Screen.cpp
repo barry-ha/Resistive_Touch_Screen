@@ -47,13 +47,13 @@ bool Resistive_Touch_Screen::isTouching(void) {
   static bool button_state = false;
   uint16_t pres_val        = pressure();
 
-  if ((button_state == false) && (pres_val > START_TOUCH_PRESSURE)) {
+  if ((button_state == false) && (pres_val > _start_touch_pressure)) {
     button_state = true;
     // Serial.print(". pressed, pressure = ");   // debug
     // Serial.println(pres_val);                 // debug
   }
 
-  if ((button_state == true) && (pres_val < END_TOUCH_PRESSURE)) {
+  if ((button_state == true) && (pres_val < _stop_touch_pressure)) {
     button_state = false;
     // Serial.print(". released, pressure = ");   // debug
     // Serial.println(pres_val);                  // debug
@@ -124,16 +124,16 @@ void Resistive_Touch_Screen::mapTouchToScreen(PressPoint touchOhms, ScreenPoint 
   case 1:   // LANDSCAPE
     // setRotation(1) = landscape orientation = x-,y-axis exchanged
     //               map(value        in_min,in_max,          out_min,out_max)
-    screenCoord->x = map(touchOhms.y, Y_MIN_OHMS, Y_MAX_OHMS, 0, _width);
-    screenCoord->y = map(touchOhms.x, X_MAX_OHMS, X_MIN_OHMS, 0, _height);
+    screenCoord->x = map(touchOhms.y, _y_min_ohms, _y_max_ohms, 0, _width);
+    screenCoord->y = map(touchOhms.x, _x_max_ohms, _x_min_ohms, 0, _height);
     screenCoord->z = touchOhms.z;
     break;
 
   case 3:   // FLIPPED_LANDSCAPE
     // setRotation(3) = upside down landscape orientation = x-,y-axis exchanged
     //               map(value        in_min,in_max,          out_min,out_max)
-    screenCoord->x = map(touchOhms.y, X_MAX_OHMS, X_MIN_OHMS, 0, _width);
-    screenCoord->y = map(touchOhms.x, Y_MIN_OHMS, Y_MAX_OHMS, 0, _height);
+    screenCoord->x = map(touchOhms.y, _x_max_ohms, _x_min_ohms, 0, _width);
+    screenCoord->y = map(touchOhms.x, _y_min_ohms, _y_max_ohms, 0, _height);
     screenCoord->z = touchOhms.z;
     break;
 
