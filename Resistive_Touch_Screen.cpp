@@ -98,7 +98,22 @@ bool Resistive_Touch_Screen::newScreenTap(ScreenPoint *screen, uint16_t orientat
       // do nothing - wait for next start of touch
     }
   }
-  // delay(10);   // no delay: code above completely handles debouncing without blocking the loop
+
+  // Clean the touchScreen hardware after function is used
+  // Because LCD may use the same pins
+  // todo - is this actually necessary?
+  /*
+  pinMode(_x_minus_pin, OUTPUT);
+  pinMode(_x_plus_pin, OUTPUT);
+  pinMode(_y_minus_pin, OUTPUT);
+  pinMode(_y_plus_pin, OUTPUT);
+
+  digitalWrite(_x_minus_pin, LOW);
+  digitalWrite(_y_plus_pin, HIGH);
+  digitalWrite(_y_minus_pin, LOW);
+  digitalWrite(_x_plus_pin, HIGH);
+  */
+
   return result;
 }
 
