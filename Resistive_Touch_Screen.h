@@ -203,21 +203,4 @@ private:
 
   uint16_t _start_touch_pressure = 200;   // minimum threshold to detect start of touch
   uint16_t _stop_touch_pressure  = 50;    // maximum threshold to detect end of touch
-
-  // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-  // For touch point precision, we need to know the resistance
-  // between X+ and X- Use any multimeter to read it.
-  // Here's a default value for starters, averaged from several https://www.adafruit.com/product/1743
-  /*
-  #define XP_XM_OHMS 310   // Resistance in ohms between X+ and X- to calibrate touch pressure
-                            // measure this with an ohmmeter while device is turned off
-
-  #define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
-  #define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
-
-  #define X_MIN_OHMS 100   // Default: Expected range on touchscreen's X-axis readings
-  #define X_MAX_OHMS 900
-  #define Y_MIN_OHMS 100   // Default: Expected range on touchscreen's Y-axis readings
-  #define Y_MAX_OHMS 900
-  */
 };
