@@ -4,7 +4,7 @@
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
 
-  Purpose:  Graph X,Y,Z touchscreen measurements
+  Purpose:  Graph X,Y,Z touchscreen measurements over time.
             You can try different touchscreen drivers to see how they perform.
 
 */
@@ -20,8 +20,12 @@
 #define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
 // ---------- Touch Screen configuration
-#define XP_XM_OHMS 310   // Resistance in ohms between X+ and X- to calibrate touch pressure
-                         // measure this with an ohmmeter while device is turned off
+#define XP_XM_OHMS 0     // Set this to zero to receive raw resistance measurements 0..1023
+                         // Adafruit suggests entering resistance in ohms between
+                         // X+ and X- to calibrate touch pressure, as measured
+                         // with an ohmmeter while device is turned off.
+                         // However, if you set non-zero, you might get +/- 16-bit
+                         // readings like I did. Run this "scope" to find out.
 #define X_MIN_OHMS 150   // Default: Expected range on touchscreen's X-axis readings
 #define X_MAX_OHMS 900
 #define Y_MIN_OHMS 100   // Default: Expected range on touchscreen's Y-axis readings
@@ -74,20 +78,19 @@ void clearScreen() {
         xul
   yul..+-:-----------------------------------------+row
        |        Touch Screen Oscilloscope          | 1
-       | 1023         X =  123 purple              | 2
-       | :            Y = 1023 yellow              | 3
-       | :            Z =  345 red                 | 4
-       | :                                         | 5
-       | :    ---                                  | 6
-       | : ---   ---                               | 7
-       | :          ---              -----         | 8
-       | :             ---        ---     ----     | 9
-       | :                --------            ---- | 10
-       | 0 ======================================= | 11
-       +-------------------:--:------------:-----:-+
-  pixel coords:           x1 x2           x3    x4
-
-  touch coords:      <-- Y-axis -->
+       | 0 ======================================= | .. canvasTop
+       | 1023         X =   123 magenta          : | 2
+       | :            Y =  1023 yellow           : | 3
+       | :            Z =   345 red              : | 4
+       | :                                       : | 5
+       | :    ---                                : | 6
+       | : ---   ---                             : | 7
+       | :          ---              -----       : | 8
+       | :             ---        ---     ----   : | 9
+       | :                --------            ---: | 10
+       | 0 ================<time>================= | 11.. canvasBottom
+       +-:------------:-------:------------------:-+
+     canvasLeft     xLabel  xValue          canvasRight
 */
 #define colorX ILI9341_MAGENTA
 #define colorY ILI9341_GREENYELLOW
@@ -97,7 +100,7 @@ const int xul    = 12;                     // leftmost screen text
 const int yul    = 0;                      //
 const int ht     = 20;                     // row height
 const int xLabel = (320 / 2);              //
-const int xValue = xLabel + 42;            //
+const int xValue = xLabel + 60;            //
 const int x1     = SCREENWIDTH / 2 - 10;   // = 320/2 = 160
 const int x2     = x1 + 48;
 const int x3     = SCREENWIDTH - 80;
@@ -168,11 +171,11 @@ void redrawLabels() {
 
 void showMeasurementText(TSPoint tp) {
   char msg[64];
-  snprintf(msg, sizeof(msg), "%4d", tp.x);   // current X value
+  snprintf(msg, sizeof(msg), "%4d", tp.x);   // current X value, 0..1023
   txtScreen[2].print(msg);
-  snprintf(msg, sizeof(msg), "%4d", tp.y);   // current Y value
+  snprintf(msg, sizeof(msg), "%4d", tp.y);   // current Y value, 0..1023
   txtScreen[4].print(msg);
-  snprintf(msg, sizeof(msg), "%4d", tp.z);   // current Z (pressure) value
+  snprintf(msg, sizeof(msg), "%4d", tp.z);   // current Z (pressure) value, 0..1023
   txtScreen[6].print(msg);
 }
 
@@ -190,11 +193,11 @@ void labelAxis() {
 
   // clang-format off
   TwoPoints solidLines[] = {
-      { xUD, SCREENHEIGHT-24, xUD, yUD, colorX},      // up arrow
+      { xUD, SCREENHEIGHT-24, xUD, yUD, colorX},      // up-down arrow
       { xUD-2, row7+16,       xUD, yUD, colorX},      // left side arrowhead
       { xUD+2, row7+16,       xUD, yUD, colorX},      // right side arrowhead
 
-      {    20, yLR,     xLR, yLR, colorY},   // right arrow
+      {    20, yLR,     xLR, yLR, colorY},   // left-right arrow
       {xLR-12, yLR-2,   xLR, yLR, colorY},   // top arrowhead
       {xLR-12, yLR+2,   xLR, yLR, colorY},   // bot arrowhead
 
@@ -271,11 +274,11 @@ void graphMeasurementItem(int index) {
 
   // draw a marker moving along bottom axis to show active measurement
   if (index == 0) {
-    sprite(canvasRight-1, canvasBottom, cBACKGROUND); // erase prev at rhs
+    sprite(canvasRight - 1, canvasBottom, cBACKGROUND);   // erase prev at rhs
   } else {
     sprite(screenx - 1, canvasBottom, cBACKGROUND);   // erase prev
   }
-  sprite(screenx, canvasBottom, ILI9341_WHITE);     // draw new
+  sprite(screenx, canvasBottom, ILI9341_WHITE);   // draw new
 }
 
 void sprite(int x, int y, int color) {
@@ -301,12 +304,12 @@ void sprite(int x, int y, int color) {
 
 void graphPoint(int ii, int mold, int mnew, int c) {
   // erase old point
-  int screeny = map(mold, 0, 1023, canvasBottom-3, canvasTop+3);
+  int screeny = map(mold, 0, 1023, canvasBottom - 3, canvasTop + 3);
   tft.drawPixel(ii, screeny, cBACKGROUND);
   tft.drawPixel(ii, screeny - 1, cBACKGROUND);
 
   // draw new point
-  screeny = map(mnew, 0, 1023, canvasBottom-3, canvasTop+3);
+  screeny = map(mnew, 0, 1023, canvasBottom - 3, canvasTop + 3);
   tft.drawPixel(ii, screeny, c);
   tft.drawPixel(ii, screeny - 1, c);   // 2 pixels tall for visibility
 }
@@ -336,27 +339,75 @@ void setup() {
   drawCanvasOutline();   // draw border outside canvas area
 }
 
-//=========== main work loop ===================================
-elapsedMillis refreshTimer;
+void insert_sort(uint16_t array[], uint8_t size) {
+  uint8_t j;
+  uint16_t save;
 
+  for (int i = 1; i < size; i++) {
+    save = array[i];
+    for (j = i; j >= 1 && save < array[j - 1]; j--)
+      array[j] = array[j - 1];
+    array[j] = save;
+  }
+}
+
+//=========== main work loop ===================================
+
+TSPoint getMeasurement_1() {
+  // simplest possible method that works to read touchscreen
+  // read one sample of x,y,z and return them to caller
+  // Result: Z using light steady pressure is extremely noisy, with almost
+  //        half the samples randomly returning zero pressure.
+  //        Adafruit has apparently struggled with this too; their driver has options
+  //        for 'oversampling' based on compile-time directive NUMSAMPLES and "insert_sort".
+  //        However, the implementation suffers overflow and returns random negative
+  //        numbers instead of 0..1023. It doesn't appear fully debugged.
+  //        We NEED filtered Z pressure, but Adafruit's oversampling is unreliable,
+  //        so use getMeasurement_3() instead, below.
+  TSPoint ret = ts.getPoint();
+
+  // Adafruit's "pressure" is okay (equals zero) while screen is not being touched,
+  // but when you touch it then the readings are inverted: heavier touch = smaller numeric values
+  // This fixup makes the Z readings directly proportional to pressure, as expected.
+  if (ret.z == 0) {
+    // do nothing, pressure reading is correct
+  } else {
+    // ret.z = (1023 - ret.z);
+  }
+  return ret;
+}
+
+TSPoint getMeasurement_3() {
+  // read 3 samples of Z pressure, return the median
+  TSPoint ret = ts.getPoint();
+
+  uint16_t p[3];
+  p[0] = ts.pressure();
+  p[1] = ts.pressure();
+  p[2] = ts.pressure();
+
+  // sort the 3 measurements; median is the middle element
+  insert_sort(p, 3);
+  ret.z = p[1];
+
+  /*** debug
+  char msg[128];
+  snprintf(msg, sizeof(msg), "Pressure: %d, %d, %d", p[0], p[1], p[2]);
+  Serial.println(msg);
+  ***/
+
+  return ret;
+}
+
+elapsedMillis refreshTimer;
 void loop() {
 
   // continuously read and update the touch measurement graph
-  // but slow it down enough to read the values
-  if (refreshTimer > 50) {
+  // use a timer to slow it down enough to read the values
+  if (refreshTimer > 25) {
     refreshTimer = 0;
 
-    TSPoint p = ts.getPoint();
-
-    // Adafruit's "pressure" is okay (equals zero) while screen is not being touched,
-    // but when you touch it then the readings are inverted: heavier touch = smaller numeric values
-    // This fixup makes the Z readings directly proportional to pressure, as expected.
-    if (p.z == 0) {
-      // do nothing, pressure reading is correct
-    } else {
-      p.z = (1023 - p.z);
-    }
-
+    TSPoint p = getMeasurement_3();
     saveMeasurement(p);
     showMeasurementText(p);
     graphMeasurementItem(current);
