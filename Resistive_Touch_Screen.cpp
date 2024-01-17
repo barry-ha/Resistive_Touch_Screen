@@ -291,9 +291,9 @@ uint16_t Resistive_Touch_Screen::pressure(void) {
   pinMode(_y_plus_pin, INPUT);
 
   int z1 = analogRead(_x_minus_pin);
-  int z2 = 1023 - analogRead(_y_plus_pin);
+  int z2 = analogRead(_y_plus_pin);
 
-  return (uint16_t)((z1 + z2) / 2);
+  return (uint16_t)(1023 - (z2 - z1));
 }
 
 // ---------- begin unit test ----------
