@@ -16,25 +16,34 @@
 #define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
 // ---------- Touch Screen configuration
-#define XP_XM_OHMS 310   // Resistance in ohms between X+ and X- to calibrate touch pressure
-                         // measure this with an ohmmeter while device is turned off
-#define X_MIN_OHMS 100   // Default: Expected range on touchscreen's X-axis readings
-#define X_MAX_OHMS 900
-#define Y_MIN_OHMS 100   // Default: Expected range on touchscreen's Y-axis readings
-#define Y_MAX_OHMS 900
+#define XP_XM_OHMS 0     // Set this to zero to receive raw resistance measurements 0..1023
+                         // Adafruit suggests entering resistance in ohms between
+                         // X+ and X- to calibrate touch pressure, as measured
+                         // with an ohmmeter while device is turned off.
+                         // However, if you set non-zero, you might get +/- 16-bit
+                         // readings like I did. Run TFT_Touch_Scope to find out.
+#define X_MIN_OHMS 100   // X-axis expected minimum reading
+#define X_MAX_OHMS 900   // X-axis expected maximum reading
+#define Y_MIN_OHMS 100   // Y-axis expected minimum reading
+#define Y_MAX_OHMS 900   // Y-axis expected maximum reading
 
 // ---------- Constructor
 Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
-// create an instance of the TFT Display
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
+// ----- define the TFT hardware
+#define TFT_BL       4     // TFT backlight
+#define TFT_CS       5     // TFT chip select pin
+#define TFT_DC       12    // TFT display/command pin
+#define SCREENWIDTH  320   //
+#define SCREENHEIGHT 240   //
+
+// ----- create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 ScreenPoint screen;     // screen coordinates of touch
 const int radius = 2;   // size of small circle
 
+//=========== setup ============================================
 void setup() {
   // ----- init Serial port
   while (!Serial) {
