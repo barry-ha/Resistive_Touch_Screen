@@ -181,6 +181,53 @@ void Resistive_Touch_Screen::mapTouchToScreen(PressPoint touchOhms, ScreenPoint 
 }
 
 /**
+ * @brief Helper function for getPoint()
+ * 
+ * @param array 
+ * @param size 
+ */
+void Resistive_Touch_Screen::insert_sort(uint16_t array[], uint8_t size) {
+  uint8_t j;
+  uint16_t save;
+
+  for (int i = 1; i < size; i++) {
+    save = array[i];
+    for (j = i; j >= 1 && save < array[j - 1]; j--)
+      array[j] = array[j - 1];
+    array[j] = save;
+  }
+}
+
+/**
+ * @brief Measure X,Y and Z (pressure) on the touchscreen
+ * 
+ * @return TSPoint 
+ */
+TSPoint Resistive_Touch_Screen::getPoint() {
+  // read 3 samples of Z pressure, return the median
+  TSPoint ret;
+  ret.x = readTouchX();
+  ret.y = readTouchY();
+
+  uint16_t p[3];
+  p[0] = pressure();
+  p[1] = pressure();
+  p[2] = pressure();
+
+  // sort the 3 measurements; median is the middle element
+  insert_sort(p, 3);
+  ret.z = p[1];
+
+  /*** debug
+  char msg[128];
+  snprintf(msg, sizeof(msg), "Pressure: %d, %d, %d", p[0], p[1], p[2]);
+  Serial.println(msg);
+  ***/
+
+  return ret;
+}
+
+/**
  * (Copied from Adafruit_Touchscreen)
  *
  * @brief Read the touch event's X value

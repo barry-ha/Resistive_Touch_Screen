@@ -182,12 +182,15 @@ public:
   }
   void unit_test();
 
+  TSPoint getPoint();
+  uint16_t pressure(void);
+
 protected:
   bool isTouching(void);
-  uint16_t pressure(void);
   void mapTouchToScreen(PressPoint touchOhms, ScreenPoint *screenCoord, int orientation);
   int readTouchX(void);
   int readTouchY(void);
+  void insert_sort(uint16_t array[], uint8_t size);
   void validateTouch(PressPoint p, ScreenPoint expected, uint16_t o);   // for unit tests
 
 private:
