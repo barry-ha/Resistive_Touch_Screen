@@ -7,6 +7,9 @@
   Purpose:  Graph X,Y,Z touchscreen measurements over time.
             You can try different touchscreen drivers to see how they perform.
 
+  Library Dependencies:
+            Adafruit / Adafruit_Touchscreen - if you want to test stock touchscreen library
+            barry-ha / Resistive_Touch_Screen - if you want to test Barry's touchscreen library
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -24,8 +27,8 @@
                          // Adafruit suggests entering resistance in ohms between
                          // X+ and X- to calibrate touch pressure, as measured
                          // with an ohmmeter while device is turned off.
-                         // However, if you set non-zero, you might get +/- 16-bit
-                         // readings like I did. Run this "scope" to find out.
+                         // However, if you set XP_XM_OHMS to non-zero, you might get
+                         // wild +/- 16-bit readings like I did. Run this "scope" to find out.
 #define X_MIN_OHMS 150   // Default: Expected range on touchscreen's X-axis readings
 #define X_MAX_OHMS 900
 #define Y_MIN_OHMS 100   // Default: Expected range on touchscreen's Y-axis readings
@@ -35,12 +38,14 @@
 
 // ---------- Constructor
 // Test 1
-#include <TouchScreen.h>   // Adafruit / Adafruit_Touchscreen library
-TouchScreen ts(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+// #include <TouchScreen.h>   // Adafruit / Adafruit_Touchscreen library
+// #define LIBRARY "Adafruit_Touchscreen"
+// TouchScreen ts(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // Test 2
-// #include <Resistive_Touch_Screen.h>   // https://github.com/barry-ha/Resistive_Touch_Screen
-// Resistive_Touch_Screen ts(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+#include <Resistive_Touch_Screen.h>   // https://github.com/barry-ha/Resistive_Touch_Screen
+#define LIBRARY "Resistive_Touch_Screen"
+Resistive_Touch_Screen ts(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_NAME "Touchscreen Oscilloscope"
@@ -69,6 +74,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #define cLABEL      ILI9341_GREEN    //
 #define cVALUE      ILI9341_YELLOW   // 255, 255, 0
 #define cTEXTCOLOR  0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
+#define cLIBCOLOR   0x3adf           // rgb(7,22,31)
 
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
@@ -96,7 +102,7 @@ void clearScreen() {
 #define colorY ILI9341_GREENYELLOW
 #define colorZ ILI9341_RED
 
-const int xul    = 12;                     // leftmost screen text
+const int xul    = 20;                     // leftmost screen text
 const int yul    = 0;                      //
 const int ht     = 20;                     // row height
 const int xLabel = (320 / 2);              //
@@ -138,6 +144,7 @@ TextField txtScreen[] = {
   // row 8
   // row 9
   // row 10
+    {LIBRARY,      xul, row10, cLIBCOLOR, ALIGNLEFT},    // [8]
   // row 11
     {"0",            1, row12, cTEXTCOLOR},       // [8] origin (0,0)
     {"Y",          132, row12, colorY},           // [9]
@@ -339,75 +346,18 @@ void setup() {
   drawCanvasOutline();   // draw border outside canvas area
 }
 
-void insert_sort(uint16_t array[], uint8_t size) {
-  uint8_t j;
-  uint16_t save;
-
-  for (int i = 1; i < size; i++) {
-    save = array[i];
-    for (j = i; j >= 1 && save < array[j - 1]; j--)
-      array[j] = array[j - 1];
-    array[j] = save;
-  }
-}
-
 //=========== main work loop ===================================
-
-TSPoint getMeasurement_1() {
-  // simplest possible method that works to read touchscreen
-  // read one sample of x,y,z and return them to caller
-  // Result: Z using light steady pressure is extremely noisy, with almost
-  //        half the samples randomly returning zero pressure.
-  //        Adafruit has apparently struggled with this too; their driver has options
-  //        for 'oversampling' based on compile-time directive NUMSAMPLES and "insert_sort".
-  //        However, the implementation suffers overflow and returns random negative
-  //        numbers instead of 0..1023. It doesn't appear fully debugged.
-  //        We NEED filtered Z pressure, but Adafruit's oversampling is unreliable,
-  //        so use getMeasurement_3() instead, below.
-  TSPoint ret = ts.getPoint();
-
-  // Adafruit's "pressure" is okay (equals zero) while screen is not being touched,
-  // but when you touch it then the readings are inverted: heavier touch = smaller numeric values
-  // This fixup makes the Z readings directly proportional to pressure, as expected.
-  if (ret.z == 0) {
-    // do nothing, pressure reading is correct
-  } else {
-    // ret.z = (1023 - ret.z);
-  }
-  return ret;
-}
-
-TSPoint getMeasurement_3() {
-  // read 3 samples of Z pressure, return the median
-  TSPoint ret = ts.getPoint();
-
-  uint16_t p[3];
-  p[0] = ts.pressure();
-  p[1] = ts.pressure();
-  p[2] = ts.pressure();
-
-  // sort the 3 measurements; median is the middle element
-  insert_sort(p, 3);
-  ret.z = p[1];
-
-  /*** debug
-  char msg[128];
-  snprintf(msg, sizeof(msg), "Pressure: %d, %d, %d", p[0], p[1], p[2]);
-  Serial.println(msg);
-  ***/
-
-  return ret;
-}
 
 elapsedMillis refreshTimer;
 void loop() {
 
   // continuously read and update the touch measurement graph
   // use a timer to slow it down enough to read the values
-  if (refreshTimer > 25) {
+  if (refreshTimer > 20) {
     refreshTimer = 0;
 
-    TSPoint p = getMeasurement_3();
+    // TSPoint p = getMeasurement_1();
+    TSPoint p = ts.getPoint();
     saveMeasurement(p);
     showMeasurementText(p);
     graphMeasurementItem(current);
