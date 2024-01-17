@@ -183,9 +183,9 @@ public:
   void unit_test();
 
   TSPoint getPoint();
-  uint16_t pressure(void);
 
 protected:
+  uint16_t pressure(void);
   bool isTouching(void);
   void mapTouchToScreen(PressPoint touchOhms, ScreenPoint *screenCoord, int orientation);
   int readTouchX(void);
