@@ -182,9 +182,9 @@ void Resistive_Touch_Screen::mapTouchToScreen(PressPoint touchOhms, ScreenPoint 
 
 /**
  * @brief Helper function for getPoint()
- * 
- * @param array 
- * @param size 
+ *
+ * @param array
+ * @param size
  */
 void Resistive_Touch_Screen::insert_sort(uint16_t array[], uint8_t size) {
   uint8_t j;
@@ -199,16 +199,25 @@ void Resistive_Touch_Screen::insert_sort(uint16_t array[], uint8_t size) {
 }
 
 /**
- * @brief Measure X,Y and Z (pressure) on the touchscreen
- * 
- * @return TSPoint 
+ * @brief Measure X,Y and Z (pressure) on the touchscreen and ignore outliers
+ * @return TSPoint
  */
 TSPoint Resistive_Touch_Screen::getPoint() {
-  // read 3 samples of Z pressure, return the median
+  // read 1 sample of X,Y
   TSPoint ret;
   ret.x = readTouchX();
   ret.y = readTouchY();
 
+  // read 3 samples of Z pressure, return the median
+  // Note: 
+  // Z measurements while using light steady pressure is extremely noisy, with
+  // almost half the samples randomly returning zero pressure.
+  // Adafruit has apparently struggled with this too; their driver has options
+  // for 'oversampling' based on compile-time directive NUMSAMPLES and "insert_sort".
+  // However, the implementation suffers overflow and returns wildly random negative
+  // numbers instead of 0..1023. It doesn't appear to be fully debugged.
+  // We need to ignore outliers of Z pressure, but Adafruit's oversampling is 
+  // unreliable, so we re-implement a fully tested routine here.
   uint16_t p[3];
   p[0] = pressure();
   p[1] = pressure();
@@ -228,11 +237,11 @@ TSPoint Resistive_Touch_Screen::getPoint() {
 }
 
 /**
- * (Copied from Adafruit_Touchscreen)
- *
  * @brief Read the touch event's X value
  *
  * @return int the X measurement
+ * 
+ * (Copied from Adafruit_Touchscreen)
  */
 int Resistive_Touch_Screen::readTouchX(void) {
   pinMode(_y_plus_pin, INPUT);
